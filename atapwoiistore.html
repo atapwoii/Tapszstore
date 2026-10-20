@@ -1,0 +1,465 @@
+ 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050b19">
+<title>TAPSZ STORE</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050b19;--panel:#0d172a;--border:#1e2d46;--blue:#2585ff;--text:#f3f7ff;--muted:#8596b2}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif;padding-bottom:80px}
+header{height:62px;background:#080f1e;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:3}
+.logo{font-weight:900;font-size:18px}.logo span{color:#49a9ff}
+main{max-width:1000px;margin:auto;padding:17px}
+.page{display:none}.page.active{display:block}
+.panel{background:linear-gradient(145deg,#101b30,#0a1325);border:1px solid var(--border);border-radius:22px;padding:17px;margin-bottom:20px}
+.hero{min-height:210px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;background:radial-gradient(ellipse at top right,#164a7e,transparent 58%),linear-gradient(130deg,#10213d,#081326)}
+.eyebrow{font-size:10px;color:#55d9ff;letter-spacing:2px;font-weight:bold}
+h1{font-size:29px;line-height:1.2;margin:12px 0}h2{font-size:18px;margin:0}
+p{font-size:12px;color:var(--muted);line-height:1.8}
+button{font:inherit;cursor:pointer}
+.btn{display:inline-block;text-decoration:none;border:0;padding:12px 15px;border-radius:12px;background:linear-gradient(110deg,#2467ff,#30a7ff);color:white;font-weight:bold}
+.btn.block{width:100%}.btn.green{background:linear-gradient(110deg,#087d59,#13b981)}.btn.gray{background:#1b2940}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:20px 0}
+.stat{padding:12px 10px;background:#0b1628;border:1px solid var(--border);border-radius:17px;min-width:0}
+.stat i{display:grid;place-items:center;width:33px;height:33px;background:#12315a;color:#64d8ff;border-radius:11px;font-style:normal;margin-bottom:10px}
+.stat b{display:block;font-size:22px;margin-bottom:7px}.stat small{font-size:10px;color:var(--muted)}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.tag{font-size:10px;border-radius:20px;padding:8px 11px;background:#172740;color:#c4d3e9}
+input,select{width:100%;min-width:0;padding:13px;background:#070f1e;border:1px solid #293952;border-radius:13px;color:white;margin:8px 0;outline:none}
+input[type=file]{font-size:12px}
+.tools{display:grid;grid-template-columns:minmax(0,1fr) 115px;gap:8px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.product{min-width:0;display:flex;flex-direction:column;background:#091426;border:1px solid #29374f;border-radius:19px;padding:9px;overflow:hidden}
+.photo{height:125px;border-radius:12px;overflow:hidden;background:#101d32;position:relative}
+.photo img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:8px;left:7px;padding:6px 8px;border-radius:20px;font-size:9px;background:#164c3b;color:#7bf4c5}
+.badge.paid{background:#45391d;color:#ffe5a2}
+.product h3{font-size:13px;line-height:1.5;margin:12px 2px 5px;overflow-wrap:anywhere}
+.desc{font-size:11px;line-height:1.7;color:#8b9bb5;white-space:pre-wrap;overflow-wrap:anywhere;flex:1}
+.price{font-size:17px;font-weight:900;margin:13px 2px;color:#f3f7ff}
+.price.free{color:#56e9b3}.product .btn{font-size:11px;padding:11px 5px;margin-top:auto}
+.empty{grid-column:1/-1;padding:25px 12px;text-align:center;border:1px dashed #30415c;border-radius:15px;color:var(--muted);font-size:12px;line-height:1.8}
+.card{padding:15px;background:#0a1528;border:1px solid #263750;border-radius:15px;margin:12px 0;overflow-wrap:anywhere}
+.card h3{font-size:14px;margin:0 0 8px}
+.status{display:inline-block;padding:6px 9px;border-radius:20px;background:#493918;color:#ffe3a0;font-size:10px}
+.status.ok{background:#103f32;color:#76f2bf}.status.no{background:#481e2a;color:#ffabb8}
+.qris{display:block;width:100%;max-width:300px;max-height:350px;object-fit:contain;background:white;border-radius:12px;margin:17px auto}
+.link{display:block;padding:16px;margin:10px 0;border-radius:14px;background:#101d32;border:1px solid #293b55;color:#edf5ff;text-decoration:none;font-size:14px;font-weight:bold;overflow-wrap:anywhere}
+.link small{display:block;color:#91a3bf;font-weight:normal;margin-top:8px}
+.bottom{position:fixed;bottom:0;left:0;right:0;z-index:4;display:grid;grid-template-columns:repeat(3,1fr);padding:8px 5px calc(8px + env(safe-area-inset-bottom));background:#080f1e;border-top:1px solid #26344b}
+.nav{background:none;border:0;color:#8192ae;padding:7px 2px;font-size:11px}.nav span{display:block;font-size:20px;margin-bottom:4px}.nav.active{color:#55c8ff}
+.note{font-size:11px;color:#8192ac;line-height:1.8}.hidden{display:none!important}
+@media(min-width:650px){main{padding:25px}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.photo{height:175px}.panel{padding:22px}}
+</style>
+</head>
+<body>
+<header>
+<div class="logo"><span>TAPSZ</span> STORE</div>
+<button class="btn" onclick="show('admin')">☎ Admin</button>
+</header>
+
+<main>
+<section id="dashboard" class="page active">
+<div class="panel hero">
+<div class="eyebrow">WELCOME TO TAPSZ STORE</div>
+<h1>Temukan APK<br>Favoritmu.</h1>
+<p>Koleksi aplikasi digital pilihan untuk kebutuhanmu.</p>
+<button class="btn" onclick="show('produk')">Jelajahi APK ↓</button>
+</div>
+<div class="stats">
+<div class="stat"><i>♧</i><b id="totalProducts">0</b><small>Produk tersedia</small></div>
+<div class="stat"><i>♙</i><b id="totalAccepted">0</b><small>Pembeli selesai</small></div>
+<div class="stat"><i>▤</i><b id="totalOrders">0</b><small>Total pesanan</small></div>
+</div>
+<div class="panel">
+<div class="head"><h2>▰ Koleksi APK</h2><span class="tag">Digital</span></div>
+<p>Pilih aplikasi sesuai kebutuhanmu.</p>
+<div class="tools">
+<input id="searchHome" placeholder="Cari nama aplikasi..." oninput="renderProducts()">
+<select id="filterHome" onchange="renderProducts()">
+<option value="all">Semua tipe</option>
+<option value="paid">Berbayar</option>
+<option value="free">Gratis</option>
+</select>
+</div>
+<div id="featured" class="grid"></div>
+<button class="btn block" style="margin-top:15px" onclick="show('produk')">Lihat Semua Produk →</button>
+</div>
+<div class="panel">
+<div class="head"><h2>🏆 Top Pembeli</h2><span class="tag">TOP 10</span></div>
+<p>Peringkat berdasarkan pesanan yang selesai.</p>
+<div id="leaderboard"></div>
+</div>
+</section>
+
+<section id="produk" class="page">
+<div class="head"><h2>▰ Koleksi Produk</h2><span class="tag">Digital</span></div>
+<p>Cari produk, lalu tekan beli untuk menampilkan QRIS.</p>
+<div class="tools">
+<input id="searchProducts" placeholder="Cari nama produk..." oninput="renderProducts()">
+<select id="filterProducts" onchange="renderProducts()">
+<option value="all">Semua tipe</option>
+<option value="paid">Berbayar</option>
+<option value="free">Gratis</option>
+</select>
+</div>
+<div id="productList" class="grid"></div>
+</section>
+
+<!-- BAGIAN PESANAN DIPERBAIKI -->
+<section id="pesanan" class="page">
+<div class="panel">
+<h2>▤ Pesanan Saya</h2>
+<p>Masukkan ID pesanan untuk memeriksa status.</p>
+<input id="orderId" placeholder="Contoh: ORD-...">
+<button class="btn block" onclick="checkOrder()">Cek Pesanan</button>
+<div id="orderResult"></div>
+<div class="head" style="margin-top:22px">
+<h2>Riwayat Pesanan</h2>
+<button class="btn gray" onclick="renderMyOrders()">↻ Refresh</button>
+</div>
+<div id="myOrders"></div>
+</div>
+</section>
+
+<section id="admin" class="page">
+<div class="panel">
+<h2>☎ Informasi Admin</h2>
+<p>Hubungi admin melalui tautan resmi berikut.</p>
+<div id="adminLinks"></div>
+</div>
+</section>
+
+<section id="bayar" class="page">
+<button class="btn gray" onclick="show('produk')">← Kembali ke produk</button>
+<div class="panel" style="margin-top:15px">
+<h2>💳 Pembayaran QRIS</h2>
+<div id="chosenProduct"></div>
+<img id="qris" class="qris hidden" alt="QRIS TAPSZ STORE">
+<div id="noQris" class="empty">QRIS belum diatur oleh admin.</div>
+<p>Bayar sesuai harga produk, lalu unggah bukti pembayaran.</p>
+<label>Nama pembeli</label>
+<input id="buyerName" placeholder="Nama kamu">
+<label>Foto bukti pembayaran (tanpa batas ukuran di kode)</label>
+<input id="proof" type="file" accept="image/*">
+<img id="proofPreview" class="qris hidden" alt="Pratinjau bukti">
+<button id="sendButton" class="btn block" onclick="sendOrder()">Kirim Bukti Pembayaran</button>
+<p id="sendMessage" class="note"></p>
+</div>
+</section>
+</main>
+
+<nav class="bottom">
+<button class="nav active" data-page="dashboard" onclick="show('dashboard')"><span>⌂</span>Beranda</button>
+<button class="nav" data-page="pesanan" onclick="show('pesanan')"><span>▤</span>Pesanan</button>
+<button class="nav" data-page="admin" onclick="show('admin')"><span>☎</span>Admin</button>
+</nav>
+
+<script>
+const KEY='tapsz_store_local_v1';
+let state={products:{},settings:{},orders:{}};
+let products={},settings={},selected=null;
+
+function load(){
+  try{
+    const s=JSON.parse(localStorage.getItem(KEY)||'{}');
+    state={
+      products:s.products||{},
+      settings:s.settings||{},
+      orders:s.orders||{}
+    };
+  }catch(e){
+    state={products:{},settings:{},orders:{}};
+  }
+  products=state.products;
+  settings=state.settings;
+}
+
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function money(n){
+  return Number(n)===0?'GRATIS':new Intl.NumberFormat('id-ID',{
+    style:'currency',currency:'IDR',maximumFractionDigits:0
+  }).format(Number(n)||0);
+}
+
+function safeUrl(s){
+  try{
+    let u=new URL(s);
+    return ['https:','http:'].includes(u.protocol)?u.href:'';
+  }catch(e){return '';}
+}
+
+function show(id){
+  document.querySelectorAll('.page').forEach(x=>
+    x.classList.toggle('active',x.id===id)
+  );
+  document.querySelectorAll('.nav').forEach(x=>
+    x.classList.toggle('active',x.dataset.page===id)
+  );
+  window.scrollTo(0,0);
+
+  if(id==='produk'||id==='dashboard')renderProducts();
+  if(id==='admin')renderLinks();
+
+  if(id==='pesanan'){
+    renderStats();
+    renderMyOrders();
+    document.getElementById('orderResult').innerHTML='';
+  }
+}
+
+function productCard(id,p){
+  let free=Number(p.price)===0;
+  return `<article class="product">
+    <div class="photo">
+      ${p.photo?`<img src="${esc(p.photo)}" alt="${esc(p.name)}">`:''}
+      <span class="badge ${free?'':'paid'}">${free?'♧ GRATIS':'♛ BERBAYAR'}</span>
+    </div>
+    <h3>${esc(p.name)}</h3>
+    <div class="desc">${esc(p.description||'Produk digital TAPSZ STORE')}</div>
+    <div class="price ${free?'free':''}">${money(p.price)}</div>
+    <button class="btn ${free?'green':''}" onclick="buy('${esc(id)}')">
+      ${free?'⬇ Download APK':'♙ Beli Produk'}
+    </button>
+  </article>`;
+}
+
+function renderProducts(){
+  let home=document.querySelector('.page.active')?.id!=='produk';
+  let q=(document.getElementById(home?'searchHome':'searchProducts').value||'').toLowerCase();
+  let filter=document.getElementById(home?'filterHome':'filterProducts').value;
+
+  let list=Object.entries(products).filter(([id,p])=>
+    (String(p.name||'')+' '+String(p.description||'')).toLowerCase().includes(q)&&
+    (filter==='all'||(filter==='free'?Number(p.price)===0:Number(p.price)!==0))
+  );
+
+  let html=list.map(([id,p])=>productCard(id,p)).join('')||
+    '<div class="empty">Belum ada produk yang cocok.</div>';
+
+  document.getElementById('featured').innerHTML=html;
+  document.getElementById('productList').innerHTML=html;
+  document.getElementById('totalProducts').textContent=Object.keys(products).length;
+}
+
+function renderStats(){
+  let orders=Object.values(state.orders);
+  document.getElementById('totalOrders').textContent=orders.length;
+  document.getElementById('totalAccepted').textContent=
+    orders.filter(o=>o.status==='Disetujui').length;
+
+  let counts={};
+  orders.filter(o=>o.status==='Disetujui').forEach(o=>{
+    counts[o.buyer]=(counts[o.buyer]||0)+1;
+  });
+
+  let top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  document.getElementById('leaderboard').innerHTML=top.length
+    ?top.map((x,i)=>`<div class="card">🏆 #${i+1} &nbsp; ${esc(x[0])}<p>${x[1]} pesanan selesai</p></div>`).join('')
+    :'<div class="empty">Leaderboard muncul setelah pesanan selesai.</div>';
+}
+
+function buy(id){
+  let p=products[id];
+  if(!p)return alert('Produk tidak ditemukan.');
+
+  if(Number(p.price)===0){
+    let link=safeUrl(p.download);
+    if(!link)return alert('Link download belum tersedia.');
+    window.open(link,'_blank','noopener');
+    return;
+  }
+
+  selected={id,...p};
+  document.getElementById('chosenProduct').innerHTML=
+    `<h3>${esc(p.name)}</h3><p>${esc(p.description||'')}</p><div class="price">${money(p.price)}</div>`;
+
+  document.getElementById('qris').classList.toggle('hidden',!settings.qris);
+  document.getElementById('noQris').classList.toggle('hidden',!!settings.qris);
+
+  if(settings.qris)document.getElementById('qris').src=settings.qris;
+
+  document.getElementById('buyerName').value='';
+  document.getElementById('proof').value='';
+  document.getElementById('proofPreview').classList.add('hidden');
+  document.getElementById('sendMessage').textContent='';
+  show('bayar');
+}
+
+document.getElementById('proof').addEventListener('change',function(){
+  const file=this.files[0];
+  if(!file)return;
+
+  if(!file.type.startsWith('image/')){
+    alert('Pilih file gambar.');
+    this.value='';
+    return;
+  }
+
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const preview=document.getElementById('proofPreview');
+    preview.src=reader.result;
+    preview.classList.remove('hidden');
+  };
+  reader.onerror=()=>{
+    alert('Gagal membaca gambar.');
+    this.value='';
+  };
+  reader.readAsDataURL(file);
+});
+
+function sendOrder(){
+  if(!selected)return alert('Pilih produk dahulu.');
+  if(!settings.qris)return alert('QRIS belum tersedia.');
+
+  let buyer=document.getElementById('buyerName').value.trim();
+  let file=document.getElementById('proof').files[0];
+  if(!buyer||!file)return alert('Isi nama dan foto bukti pembayaran.');
+
+  let btn=document.getElementById('sendButton');
+  btn.disabled=true;
+
+  let reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      let id='ORD-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);
+
+      state.orders[id]={
+        id,buyer,productId:selected.id,name:selected.name,
+        price:Number(selected.price),download:selected.download||'',
+        proof:reader.result,status:'Menunggu konfirmasi',
+        createdAt:Date.now(),date:new Date().toLocaleString('id-ID')
+      };
+
+      localStorage.setItem(KEY,JSON.stringify(state));
+      load();
+      renderStats();
+      renderMyOrders();
+
+      document.getElementById('sendMessage').textContent=
+        'Pesanan tersimpan. ID pesanan: '+id;
+      document.getElementById('orderId').value=id;
+      selected=null;
+    }catch(e){
+      alert('Penyimpanan browser penuh atau gambar terlalu besar untuk disimpan. Coba gambar lebih kecil atau gunakan penyimpanan online.');
+    }finally{
+      btn.disabled=false;
+    }
+  };
+
+  reader.onerror=()=>{
+    btn.disabled=false;
+    alert('Gagal membaca gambar.');
+  };
+  reader.readAsDataURL(file);
+}
+
+function checkOrder(){
+  let id=document.getElementById('orderId').value.trim();
+  let el=document.getElementById('orderResult');
+
+  if(!id){
+    el.innerHTML='<p>Masukkan ID pesanan.</p>';
+    return;
+  }
+
+  load();
+  let o=state.orders[id];
+
+  if(!o){
+    el.innerHTML='<div class="empty">Pesanan tidak ditemukan pada browser ini. Pastikan ID benar dan gunakan browser yang sama.</div>';
+    return;
+  }
+
+  let link=safeUrl(o.download);
+  el.innerHTML=`<div class="card">
+    <h3>${esc(o.name)}</h3>
+    <p>Nama: ${esc(o.buyer)}<br>Harga: ${money(o.price)}<br>ID: ${esc(o.id)}<br>Tanggal: ${esc(o.date||'-')}</p>
+    <span class="status ${o.status==='Disetujui'?'ok':o.status==='Ditolak'?'no':''}">${esc(o.status||'Menunggu konfirmasi')}</span>
+    ${o.status==='Disetujui'&&link?`<p><a class="btn" href="${esc(link)}" target="_blank" rel="noopener">Download Produk</a></p>`:''}
+  </div>`;
+
+  renderMyOrders();
+}
+
+function renderMyOrders(){
+  load();
+  const el=document.getElementById('myOrders');
+  if(!el)return;
+
+  const orders=Object.values(state.orders)
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+  if(!orders.length){
+    el.innerHTML='<div class="empty">Belum ada pesanan tersimpan di browser ini.</div>';
+    return;
+  }
+
+  el.innerHTML=orders.map(o=>{
+    const status=o.status||'Menunggu konfirmasi';
+    const link=safeUrl(o.download);
+
+    return `<div class="card">
+      <h3>${esc(o.name||'Produk')}</h3>
+      <p>Nama: ${esc(o.buyer)}<br>Harga: ${money(o.price)}<br>ID Pesanan: ${esc(o.id)}<br>Tanggal: ${esc(o.date||'-')}</p>
+      <span class="status ${status==='Disetujui'?'ok':status==='Ditolak'?'no':''}">${esc(status)}</span>
+      <button class="btn block" style="margin-top:12px" onclick="openOrder('${esc(o.id)}')">Lihat Detail</button>
+      ${status==='Disetujui'&&link?`<a class="btn block" style="margin-top:8px;text-align:center" href="${esc(link)}" target="_blank" rel="noopener">⬇ Download Produk</a>`:''}
+    </div>`;
+  }).join('');
+}
+
+function openOrder(id){
+  document.getElementById('orderId').value=id;
+  checkOrder();
+}
+
+function renderLinks(){
+  let wa=String(settings.wa||'').replace(/\D/g,'');
+  let list=[
+    ['📢 Saluran WhatsApp',safeUrl(settings.channel)],
+    ['☎ WhatsApp Admin',wa?'https://wa.me/'+wa:''],
+    ['🎵 TikTok',safeUrl(settings.tiktok)]
+  ];
+
+  document.getElementById('adminLinks').innerHTML=list.map(([name,url])=>
+    url
+      ?`<a class="link" href="${esc(url)}" target="_blank" rel="noopener">${name}<small>${esc(url)}</small></a>`
+      :`<div class="link">${name}<small>Belum diatur admin.</small></div>`
+  ).join('');
+}
+
+function refresh(){
+  load();
+  renderProducts();
+  renderLinks();
+  renderStats();
+  renderMyOrders();
+  if(document.getElementById('orderId').value)checkOrder();
+}
+
+window.addEventListener('storage',e=>{
+  if(e.key===KEY)refresh();
+});
+window.addEventListener('focus',refresh);
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)refresh();
+});
+
+load();
+renderProducts();
+renderLinks();
+renderStats();
+renderMyOrders();
+</script>
+</body>
+</html>
