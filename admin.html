@@ -1,0 +1,544 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050b19">
+<title>Admin TAPSZ STORE</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050b19;--panel:#0d172a;--border:#1e2d46;--text:#f3f7ff;--muted:#8596b2}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#080f1e;border-bottom:1px solid var(--border);padding:15px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.logo{font-size:18px;font-weight:bold}.logo span{color:#49a9ff}
+main{max-width:900px;margin:auto;padding:15px}
+.panel{background:linear-gradient(145deg,#101b30,#0a1325);border:1px solid var(--border);border-radius:20px;padding:15px;margin-bottom:17px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:15px}
+h2{font-size:18px;margin:0}h3{font-size:15px}
+p,.muted{font-size:12px;color:var(--muted);line-height:1.8}
+.tag{font-size:10px;border-radius:20px;padding:8px;background:#172740;color:#c4d3e9}
+button{font:inherit;cursor:pointer}
+.btn{border:0;padding:12px 14px;border-radius:11px;background:linear-gradient(110deg,#2467ff,#30a7ff);color:white;font-weight:bold}
+.gray{background:#1b2940}.red{background:#84263c}.green{background:linear-gradient(110deg,#087d59,#13b981)}
+.small{padding:9px 11px;font-size:12px}
+input,textarea{width:100%;padding:12px;background:#070f1e;border:1px solid #293952;border-radius:12px;color:white;margin:7px 0 13px;font:inherit}
+textarea{min-height:80px}
+label{font-size:12px;color:#aab9d0;display:block}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:15px 0}
+.stat{background:#0b1628;border:1px solid var(--border);border-radius:15px;padding:12px}
+.stat b{display:block;font-size:23px;margin-top:10px}
+.stat small{font-size:11px;color:var(--muted)}
+.notice{padding:12px;border:1px solid #5b4a24;background:#302814;border-radius:12px;color:#e8d4a2;font-size:12px;line-height:1.8}
+.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:14px}
+.tab{border:1px solid #293952;border-radius:11px;background:#101d32;color:#b8c8df;padding:10px;white-space:nowrap}
+.tab.active{background:#1d5fba;color:white}
+.item{background:#091426;border:1px solid #29374f;border-radius:14px;padding:13px;margin:10px 0;overflow-wrap:anywhere}
+.item img{max-width:100%;max-height:200px;object-fit:contain;border-radius:10px;margin:8px 0}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.actions button{font-size:12px}
+.hidden{display:none!important}
+.preview{max-width:220px;max-height:240px;object-fit:contain;background:white;border-radius:10px;margin:8px 0}
+.status{display:inline-block;padding:6px 9px;border-radius:20px;background:#493918;color:#ffe3a0;font-size:10px}
+.status.ok{background:#103f32;color:#76f2bf}.status.no{background:#481e2a;color:#ffabb8}
+.empty{text-align:center;padding:20px;border:1px dashed #30415c;border-radius:13px;color:var(--muted);font-size:12px}
+a{color:#62baff;overflow-wrap:anywhere}
+.foot{text-align:center;color:#7184a2;font-size:11px;padding:12px}
+.modal{position:fixed;inset:0;background:#000d;z-index:20;display:flex;align-items:center;justify-content:center;padding:14px}
+.modalbox{background:#0d172a;border:1px solid #293952;border-radius:16px;padding:15px;width:100%;max-width:600px;max-height:90vh;overflow:auto}
+.proofimg{display:block;max-width:100%;max-height:65vh;object-fit:contain;margin:12px auto;border-radius:10px;background:#fff}
+@media(max-width:520px){main{padding:10px}.panel{padding:12px}.two{grid-template-columns:1fr}.stat{padding:9px}.stat b{font-size:20px}header{padding:12px}}
+</style>
+</head>
+<body>
+<header>
+<div class="logo"><span>TAPSZ</span> STORE <small style="color:#8596b2;font-size:11px">/ ADMIN</small></div>
+<button id="logoutBtn" class="btn red hidden" onclick="logout()">Keluar</button>
+</header>
+
+<main>
+<section id="loginPanel" class="panel" style="max-width:430px;margin:40px auto">
+<div class="head"><h2>🔐 Login Admin</h2><span class="tag">ADMIN</span></div>
+<p>Masukkan password admin.</p>
+<form onsubmit="login(event)">
+<label>Password admin</label>
+<input id="password" type="password" required placeholder="Masukkan password">
+<button class="btn" style="width:100%">Masuk ke Admin →</button>
+</form>
+<p id="loginError" class="muted"></p>
+<div class="notice">Password awal: <b>tapsz</b>. Login ini hanya kunci tampilan, bukan keamanan server.</div>
+</section>
+
+<section id="adminPanel" class="hidden">
+<div class="panel">
+<div class="head"><h2>Ringkasan Toko</h2><span class="tag">ADMIN</span></div>
+<div class="stats">
+<div class="stat"><small>Produk</small><b id="countProducts">0</b></div>
+<div class="stat"><small>Pesanan</small><b id="countOrders">0</b></div>
+<div class="stat"><small>Disetujui</small><b id="countApproved">0</b></div>
+</div>
+<div class="notice">Data disimpan di browser ini. Buat backup secara berkala.</div>
+</div>
+
+<div class="tabs">
+<button class="tab active" data-tab="products" onclick="openTab('products')">📦 Produk</button>
+<button class="tab" data-tab="settings" onclick="openTab('settings')">⚙️ Pengaturan</button>
+<button class="tab" data-tab="orders" onclick="openTab('orders')">🧾 Pesanan / ACC</button>
+<button class="tab" data-tab="backup" onclick="openTab('backup')">💾 Backup</button>
+</div>
+
+<section id="tab-products">
+<div class="panel">
+<h2>✦ Tambah / Edit Produk</h2>
+<input id="editId" type="hidden">
+<label>Nama produk</label><input id="pName" placeholder="Nama APK">
+<div class="two">
+<div><label>Harga</label><input id="pPrice" type="number" min="0" placeholder="10000"></div>
+<div><label>Kategori</label><input id="pCategory" placeholder="APK / Premium"></div>
+</div>
+<label>Deskripsi</label><textarea id="pDesc" placeholder="Informasi produk"></textarea>
+<label>Foto produk</label><input id="pPhoto" type="file" accept="image/*">
+<img id="photoPreview" class="preview hidden" alt="Pratinjau produk">
+<label>Link unduhan</label><input id="pDownload" type="url" placeholder="https://...">
+<div class="row">
+<button class="btn" onclick="saveProduct()">Simpan Produk</button>
+<button class="btn gray" onclick="clearProductForm()">Kosongkan</button>
+</div>
+</div>
+<div class="panel"><h2>▤ Daftar Produk</h2><div id="productList"></div></div>
+</section>
+
+<section id="tab-settings" class="hidden">
+<div class="panel">
+<h2>💳 QRIS & Link Admin</h2>
+<label>Gambar QRIS</label><input id="qrisFile" type="file" accept="image/*">
+<img id="qrisPreview" class="preview hidden" alt="QRIS">
+<div class="row">
+<button class="btn small" onclick="saveQris()">Simpan QRIS</button>
+<button class="btn gray small" onclick="removeQris()">Hapus QRIS</button>
+</div>
+<p id="qrisStatus"></p>
+<hr style="border-color:#24344c">
+<label>Nomor WhatsApp admin (tanpa +)</label><input id="wa" placeholder="628xxxxxxxxxx">
+<label>Link saluran WhatsApp</label><input id="channel" type="url" placeholder="https://whatsapp.com/channel/...">
+<label>Link TikTok</label><input id="tiktok" type="url" placeholder="https://www.tiktok.com/@...">
+<button class="btn" onclick="saveSettings()">Simpan Pengaturan</button>
+</div>
+</section>
+
+<section id="tab-orders" class="hidden">
+<div class="panel">
+<div class="head"><h2>🧾 Pesanan Pembeli</h2><span class="tag">ACC / TOLAK</span></div>
+<p>Pesanan yang tersimpan di browser ini akan muncul di sini.</p>
+<div class="two">
+<div><label>Nama pembeli</label><input id="oBuyer" placeholder="Nama pembeli"></div>
+<div><label>Produk</label><input id="oProduct" placeholder="Nama produk"></div>
+</div>
+<div class="two">
+<div><label>Harga</label><input id="oPrice" type="number" min="0" placeholder="10000"></div>
+<div><label>ID pesanan</label><input id="oId" placeholder="ORD-..."></div>
+</div>
+<label>Link bukti pembayaran</label><input id="oProof" placeholder="URL atau data gambar">
+<button class="btn" onclick="addOrder()">+ Tambah Pesanan Manual</button>
+<div id="orderList" style="margin-top:15px"></div>
+</div>
+</section>
+
+<section id="tab-backup" class="hidden">
+<div class="panel">
+<h2>💾 Backup Data</h2>
+<p>Ekspor atau impor produk, pengaturan, QRIS, dan pesanan. Backup dapat berukuran besar jika berisi banyak gambar.</p>
+<div class="row">
+<button class="btn" onclick="exportData()">Ekspor Backup</button>
+<label class="btn gray" style="text-align:center;cursor:pointer">Impor Backup
+<input type="file" accept=".json,application/json" style="display:none" onchange="importData(event)">
+</label>
+</div>
+<button class="btn red" style="margin-top:15px" onclick="clearAll()">Hapus Semua Data Lokal</button>
+</div>
+</section>
+</section>
+
+<div class="foot">TAPSZ STORE • Admin lokal</div>
+</main>
+
+<div id="proofModal" class="modal hidden" onclick="if(event.target===this)closeProof()">
+<div class="modalbox">
+<div class="head"><h2>Bukti Pembayaran</h2><button class="btn red small" onclick="closeProof()">Tutup ✕</button></div>
+<div id="proofContent"></div>
+<div class="row">
+<button id="proofOpenBtn" class="btn hidden" onclick="openProofNewTab()">Buka di Tab Baru</button>
+<button class="btn gray" onclick="closeProof()">Kembali</button>
+</div>
+</div>
+</div>
+
+<script>
+const KEY='tapsz_store_local_v1';
+const DB_NAME='tapsz_store_images_v1';
+const DB_STORE='images';
+let state={products:{},settings:{},orders:{}};
+let photoData='',qrisData='',db=null,proofCurrent='';
+let qrisObjectUrl='';
+
+function esc(v){
+return String(v??'').replace(/[&<>"']/g,c=>({
+'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+}
+function money(n){
+return Number(n)===0?'GRATIS':new Intl.NumberFormat('id-ID',{
+style:'currency',currency:'IDR',maximumFractionDigits:0
+}).format(Number(n)||0);
+}
+function openImageDB(){
+return new Promise((resolve,reject)=>{
+if(!window.indexedDB)return reject(Error('IndexedDB tidak tersedia'));
+const req=indexedDB.open(DB_NAME,1);
+req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};
+req.onsuccess=()=>{db=req.result;resolve(db)};
+req.onerror=()=>reject(req.error);
+});
+}
+function dbSet(k,v){
+return new Promise((resolve,reject)=>{
+if(!db)return reject(Error('Database belum siap'));
+const tx=db.transaction(DB_STORE,'readwrite');
+tx.objectStore(DB_STORE).put(v,k);
+tx.oncomplete=()=>resolve();
+tx.onerror=()=>reject(tx.error);
+tx.onabort=()=>reject(tx.error||Error('Penyimpanan dibatalkan'));
+});
+}
+function dbGet(k){
+return new Promise((resolve,reject)=>{
+if(!db)return reject(Error('Database belum siap'));
+const tx=db.transaction(DB_STORE,'readonly');
+const req=tx.objectStore(DB_STORE).get(k);
+req.onsuccess=()=>resolve(req.result||null);
+req.onerror=()=>reject(req.error);
+});
+}
+function dbDelete(k){
+return new Promise((resolve,reject)=>{
+if(!db)return reject(Error('Database belum siap'));
+const tx=db.transaction(DB_STORE,'readwrite');
+tx.objectStore(DB_STORE).delete(k);
+tx.oncomplete=resolve;
+tx.onerror=()=>reject(tx.error);
+});
+}
+function load(){
+try{
+const s=JSON.parse(localStorage.getItem(KEY)||'{}');
+state={products:s.products||{},settings:{...(s.settings||{})},orders:s.orders||{}};
+}catch(e){alert('Data lokal rusak. Coba impor backup.');}
+}
+function persist(){
+try{
+const s={products:state.products,settings:{...state.settings},orders:state.orders};
+delete s.settings.qris;
+localStorage.setItem(KEY,JSON.stringify(s));
+renderAll();
+return true;
+}catch(e){
+alert('Penyimpanan penuh. Kurangi ukuran foto atau buat backup sebelum mencoba lagi.');
+return false;
+}
+}
+function login(e){
+e.preventDefault();
+if(document.getElementById('password').value==='tapsz'){
+sessionStorage.setItem('tapsz_admin_open','1');showAdmin();
+}else document.getElementById('loginError').textContent='Password salah.';
+}
+function showAdmin(){
+document.getElementById('loginPanel').classList.add('hidden');
+document.getElementById('adminPanel').classList.remove('hidden');
+document.getElementById('logoutBtn').classList.remove('hidden');
+renderAll();fillSettings();
+}
+function logout(){
+sessionStorage.removeItem('tapsz_admin_open');
+document.getElementById('adminPanel').classList.add('hidden');
+document.getElementById('loginPanel').classList.remove('hidden');
+document.getElementById('logoutBtn').classList.add('hidden');
+document.getElementById('password').value='';
+}
+function openTab(t){
+document.querySelectorAll('[id^="tab-"]').forEach(x=>x.classList.add('hidden'));
+document.getElementById('tab-'+t).classList.remove('hidden');
+document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));
+if(t==='settings')fillSettings();
+}
+function readImage(file,cb,sharp=false){
+if(!file)return;
+if(!file.type.startsWith('image/'))return alert('Pilih file gambar.');
+const url=URL.createObjectURL(file),img=new Image();
+img.onload=()=>{
+try{
+const scale=Math.min(1,sharp?1600/Math.max(img.width,img.height):900/Math.max(img.width,img.height));
+const c=document.createElement('canvas');
+c.width=Math.max(1,Math.round(img.width*scale));
+c.height=Math.max(1,Math.round(img.height*scale));
+const ctx=c.getContext('2d');
+ctx.drawImage(img,0,0,c.width,c.height);
+const result=sharp?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.72);
+URL.revokeObjectURL(url);cb(result);
+}catch(e){URL.revokeObjectURL(url);alert('Gagal memproses gambar.')}
+};
+img.onerror=()=>{URL.revokeObjectURL(url);alert('Gambar tidak bisa dibuka.')};
+img.src=url;
+}
+document.getElementById('pPhoto').addEventListener('change',e=>{
+readImage(e.target.files[0],v=>{
+photoData=v;const im=document.getElementById('photoPreview');
+im.src=v;im.classList.remove('hidden');
+});
+});
+document.getElementById('qrisFile').addEventListener('change',e=>{
+readImage(e.target.files[0],v=>{
+qrisData=v;const im=document.getElementById('qrisPreview');
+im.src=v;im.classList.remove('hidden');
+document.getElementById('qrisStatus').textContent='Gambar siap disimpan.';
+},true);
+});
+function saveProduct(){
+const name=document.getElementById('pName').value.trim();
+const price=Number(document.getElementById('pPrice').value);
+if(!name)return alert('Nama produk wajib diisi.');
+if(!Number.isFinite(price)||price<0)return alert('Harga tidak valid.');
+const id=document.getElementById('editId').value||'P-'+Date.now();
+const prev=state.products[id];
+state.products[id]={id,name,price,
+category:document.getElementById('pCategory').value.trim(),
+description:document.getElementById('pDesc').value.trim(),
+photo:photoData||(prev&&prev.photo)||'',
+download:document.getElementById('pDownload').value.trim()};
+if(!persist()){if(prev)state.products[id]=prev;else delete state.products[id];return}
+clearProductForm();alert('Produk tersimpan.');
+}
+function clearProductForm(){
+['editId','pName','pPrice','pCategory','pDesc','pDownload'].forEach(k=>document.getElementById(k).value='');
+document.getElementById('pPhoto').value='';photoData='';
+document.getElementById('photoPreview').classList.add('hidden');
+}
+function editProduct(id){
+const p=state.products[id];if(!p)return;
+document.getElementById('editId').value=id;
+document.getElementById('pName').value=p.name||'';
+document.getElementById('pPrice').value=p.price??0;
+document.getElementById('pCategory').value=p.category||'';
+document.getElementById('pDesc').value=p.description||'';
+document.getElementById('pDownload').value=p.download||'';
+photoData=p.photo||'';
+const im=document.getElementById('photoPreview');
+if(photoData){im.src=photoData;im.classList.remove('hidden')}else im.classList.add('hidden');
+openTab('products');window.scrollTo(0,0);
+}
+function deleteProduct(id){
+if(!confirm('Hapus produk ini?'))return;
+const old=state.products[id];delete state.products[id];
+if(!persist())state.products[id]=old;
+}
+function renderProducts(){
+const list=Object.values(state.products);
+document.getElementById('productList').innerHTML=list.length?list.map(p=>`
+<div class="item">${p.photo?`<img src="${esc(p.photo)}" alt="Foto produk">`:''}
+<h3>${esc(p.name)}</h3><p>${esc(p.category||'Tanpa kategori')} • ${money(p.price)}</p>
+<p>${esc(p.description||'Tidak ada deskripsi')}</p>
+<p>Unduhan: ${p.download?`<a href="${esc(p.download)}" target="_blank" rel="noopener">Buka link</a>`:'Belum diisi'}</p>
+<div class="actions"><button class="btn small" onclick="editProduct('${esc(p.id)}')">Edit</button><button class="btn red small" onclick="deleteProduct('${esc(p.id)}')">Hapus</button></div>
+</div>`).join(''):'<div class="empty">Belum ada produk.</div>';
+}
+async function showQris(){
+const im=document.getElementById('qrisPreview');
+try{
+const d=await dbGet('main-qris');
+if(!d){qrisData='';im.classList.add('hidden');document.getElementById('qrisStatus').textContent='Belum ada QRIS.';return}
+qrisData=d;
+if(qrisObjectUrl)URL.revokeObjectURL(qrisObjectUrl);
+if(d instanceof Blob){qrisObjectUrl=URL.createObjectURL(d);im.src=qrisObjectUrl}
+else im.src=d;
+im.classList.remove('hidden');document.getElementById('qrisStatus').textContent='QRIS tersimpan.';
+}catch(e){document.getElementById('qrisStatus').textContent='Gagal membaca QRIS.'}
+}
+async function fillSettings(){
+['wa','channel','tiktok'].forEach(k=>document.getElementById(k).value=state.settings[k]||'');
+await showQris();
+}
+async function saveQris(){
+if(!qrisData)return alert('Pilih QRIS terlebih dahulu.');
+try{await dbSet('main-qris',qrisData);await showQris();alert('QRIS berhasil disimpan.')}
+catch(e){alert('Gagal menyimpan QRIS. Periksa penyimpanan browser.')}
+}
+async function removeQris(){
+if(!confirm('Hapus QRIS?'))return;
+try{await dbDelete('main-qris');qrisData='';document.getElementById('qrisFile').value='';await showQris();alert('QRIS dihapus.')}
+catch(e){alert('Gagal menghapus QRIS.')}
+}
+function saveSettings(){
+const old={...state.settings};
+['wa','channel','tiktok'].forEach(k=>state.settings[k]=document.getElementById(k).value.trim());
+if(!persist()){state.settings=old;return}
+alert('Pengaturan tersimpan.');
+}
+function addOrder(){
+const buyer=document.getElementById('oBuyer').value.trim();
+const name=document.getElementById('oProduct').value.trim();
+if(!buyer||!name)return alert('Nama pembeli dan produk wajib diisi.');
+const id=document.getElementById('oId').value.trim()||'ORD-'+Date.now();
+const old=state.orders[id];
+state.orders[id]={id,buyer,name,price:Number(document.getElementById('oPrice').value)||0,
+proof:document.getElementById('oProof').value.trim(),
+status:'Menunggu konfirmasi',createdAt:Date.now()};
+if(!persist()){if(old)state.orders[id]=old;else delete state.orders[id];return}
+['oBuyer','oProduct','oPrice','oId','oProof'].forEach(k=>document.getElementById(k).value='');
+}
+function normalizeProof(value){
+if(typeof value!=='string')return '';
+return value.trim();
+}
+function viewProof(id){
+const o=state.orders[id];if(!o)return;
+const proof=normalizeProof(o.proof||o.proofData||o.bukti||o.paymentProof);
+if(!proof)return alert('Pesanan ini tidak memiliki bukti pembayaran.');
+proofCurrent=proof;
+const content=document.getElementById('proofContent');
+const openBtn=document.getElementById('proofOpenBtn');
+content.innerHTML='';
+openBtn.classList.add('hidden');
+
+if(proof.startsWith('data:image/')){
+const im=document.createElement('img');
+im.className='proofimg';im.alt='Bukti pembayaran';im.src=proof;
+im.onerror=()=>{content.textContent='Gambar tidak dapat ditampilkan. Data gambar mungkin rusak atau terpotong.'};
+content.appendChild(im);
+openBtn.classList.remove('hidden');
+}else if(/^https?:\/\//i.test(proof)){
+const link=document.createElement('a');
+link.href=proof;link.target='_blank';link.rel='noopener noreferrer';
+link.textContent='Buka tautan bukti pembayaran';
+link.style.display='block';link.style.margin='12px 0';
+content.appendChild(link);
+if(/\.(png|jpe?g|webp|gif|bmp)(\?.*)?$/i.test(proof)){
+const im=document.createElement('img');im.className='proofimg';im.alt='Bukti pembayaran';im.src=proof;
+im.onerror=()=>im.remove();content.appendChild(im);
+}
+openBtn.classList.remove('hidden');
+}else{
+content.textContent='Format bukti tidak dikenali. Pastikan bukti berupa URL HTTPS atau data gambar Base64.';
+}
+document.getElementById('proofModal').classList.remove('hidden');
+}
+function openProofNewTab(){
+if(!proofCurrent)return;
+if(proofCurrent.startsWith('data:image/')){
+const w=window.open();
+if(!w)return alert('Browser memblokir tab baru. Gunakan tampilan bukti di halaman ini.');
+w.document.write('<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bukti Pembayaran</title></head><body style="margin:0;background:#111;display:flex;justify-content:center"><img style="max-width:100%;max-height:100vh;object-fit:contain" src="'+proofCurrent+'"></body></html>');
+w.document.close();
+}else if(/^https?:\/\//i.test(proofCurrent)){
+window.open(proofCurrent,'_blank','noopener');
+}
+}
+function closeProof(){
+document.getElementById('proofModal').classList.add('hidden');
+document.getElementById('proofContent').innerHTML='';
+proofCurrent='';
+}
+function setOrderStatus(id,status){
+const o=state.orders[id];if(!o)return;
+const old={...o};o.status=status;
+if(status==='Disetujui'&&o.productId){
+const p=state.products[o.productId];if(p)o.download=p.download||'';
+}
+if(!persist())state.orders[id]=old;
+}
+function deleteOrder(id){
+if(!confirm('Hapus pesanan ini?'))return;
+const old=state.orders[id];delete state.orders[id];
+if(!persist())state.orders[id]=old;
+}
+function renderOrders(){
+const list=Object.values(state.orders).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+document.getElementById('orderList').innerHTML=list.length?list.map(o=>{
+const proof=o.proof||o.proofData||o.bukti||o.paymentProof||'';
+return `<div class="item"><h3>${esc(o.name||o.productName||'Pesanan')}</h3>
+<p>Pembeli: <b>${esc(o.buyer||o.buyerName||'-')}</b><br>
+ID: ${esc(o.id||'-')}<br>Harga: ${money(o.price)}<br>
+Waktu: ${esc(o.date||new Date(o.createdAt||Date.now()).toLocaleString('id-ID'))}</p>
+<span class="status ${o.status==='Disetujui'?'ok':o.status==='Ditolak'?'no':''}">${esc(o.status||'Menunggu konfirmasi')}</span>
+${proof?`<div class="actions"><button class="btn small" onclick="viewProof('${esc(o.id)}')">👁 Lihat Bukti</button></div>`:'<p>Belum ada bukti pembayaran.</p>'}
+<div class="actions">
+<button class="btn green small" onclick="setOrderStatus('${esc(o.id)}','Disetujui')">✓ ACC / Setujui</button>
+<button class="btn red small" onclick="setOrderStatus('${esc(o.id)}','Ditolak')">Tolak</button>
+<button class="btn gray small" onclick="deleteOrder('${esc(o.id)}')">Hapus</button>
+</div></div>`;
+}).join(''):'<div class="empty">Belum ada pesanan.</div>';
+}
+function renderAll(){
+document.getElementById('countProducts').textContent=Object.keys(state.products).length;
+document.getElementById('countOrders').textContent=Object.keys(state.orders).length;
+document.getElementById('countApproved').textContent=Object.values(state.orders).filter(o=>o.status==='Disetujui').length;
+renderProducts();renderOrders();
+}
+async function exportData(){
+try{
+const data={...state,settings:{...state.settings},qris:await dbGet('main-qris')};
+const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+const url=URL.createObjectURL(blob),a=document.createElement('a');
+a.href=url;a.download='tapsz-store-backup.json';a.click();
+setTimeout(()=>URL.revokeObjectURL(url),2000);
+}catch(e){alert('Backup gagal.')}
+}
+function importData(e){
+const file=e.target.files[0];if(!file)return;
+const r=new FileReader();
+r.onload=async()=>{
+let old=state;
+try{
+const d=JSON.parse(r.result);
+if(!d||typeof d!=='object'||Array.isArray(d))throw Error('Backup tidak valid');
+state={products:d.products||{},settings:{...(d.settings||{})},orders:d.orders||{}};
+if(!persist()){state=old;renderAll();return}
+if(d.qris)await dbSet('main-qris',d.qris);
+else if(d.settings&&d.settings.qris)await dbSet('main-qris',d.settings.qris);
+await fillSettings();alert('Backup berhasil diimpor.');
+}catch(err){state=old;persist();alert('Impor gagal. Pastikan file backup valid dan penyimpanan tersedia.')}
+};
+r.onerror=()=>alert('File tidak bisa dibaca.');
+r.readAsText(file);e.target.value='';
+}
+async function migrateQris(){
+if(state.settings.qris){
+try{
+if(!(await dbGet('main-qris')))await dbSet('main-qris',state.settings.qris);
+delete state.settings.qris;persist();
+}catch(e){console.warn('Migrasi QRIS gagal',e)}
+}
+}
+function clearAll(){
+if(!confirm('Hapus semua produk, pengaturan, dan pesanan lokal?'))return;
+const old=state;state={products:{},settings:{},orders:{}};
+if(!persist()){state=old;return}
+alert('Data lokal dihapus. QRIS harus dihapus terpisah melalui Pengaturan.');
+fillSettings();
+}
+async function refresh(){
+load();renderAll();await fillSettings();
+}
+window.addEventListener('storage',e=>{if(e.key===KEY)refresh()});
+async function init(){
+load();
+try{await openImageDB();await migrateQris();await showQris()}
+catch(e){document.getElementById('qrisStatus').textContent='Penyimpanan QRIS tidak tersedia. Jalankan melalui preview SPCK.'}
+if(sessionStorage.getItem('tapsz_admin_open')==='1')showAdmin();
+else renderAll();
+}
+init();
+</script>
+</body>
+</html>
