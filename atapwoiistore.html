@@ -99,7 +99,7 @@ input[type=file]{font-size:12px}
 <div class="head"><h2>▰ Koleksi Produk</h2><span class="tag">Digital</span></div>
 <p>Cari produk, lalu tekan beli untuk menampilkan QRIS.</p>
 <div class="tools">
-<input id="searchProducts" placeholder="Cari nama aplikasi..." oninput="renderProducts()">
+<input id="searchProducts" placeholder="Cari nama produk..." oninput="renderProducts()">
 <select id="filterProducts" onchange="renderProducts()">
 <option value="all">Semua tipe</option>
 <option value="paid">Berbayar</option>
@@ -126,16 +126,6 @@ input[type=file]{font-size:12px}
 
 <section id="admin" class="page">
 <div class="panel">
-<h2>⚙️ Pengaturan QRIS</h2>
-<p>Pilih gambar QRIS dari galeri HP, lalu simpan. QRIS tersimpan di browser/perangkat ini saja.</p>
-<label for="qrisUpload">Gambar QRIS</label>
-<input id="qrisUpload" type="file" accept="image/*">
-<img id="qrisAdminPreview" class="qris hidden" alt="Pratinjau QRIS admin">
-<button class="btn block" onclick="saveQrisUpload()">Simpan QRIS</button>
-<button class="btn gray block" style="margin-top:8px" onclick="removeQrisUpload()">Hapus QRIS</button>
-<p id="qrisAdminMessage" class="note"></p>
-</div>
-<div class="panel">
 <h2>☎ Informasi Admin</h2>
 <p>Hubungi admin melalui tautan resmi berikut.</p>
 <div id="adminLinks"></div>
@@ -147,8 +137,9 @@ input[type=file]{font-size:12px}
 <div class="panel" style="margin-top:15px">
 <h2>💳 Pembayaran QRIS</h2>
 <div id="chosenProduct"></div>
+<div id="qrisLoading" class="empty hidden">Memuat QRIS...</div>
 <img id="qris" class="qris hidden" alt="QRIS TAPSZ STORE">
-<div id="noQris" class="empty">QRIS belum diatur oleh admin.</div>
+<div id="noQris" class="empty hidden">QRIS belum ditemukan. Pastikan QRIS sudah disimpan admin dan halaman menggunakan origin yang sama.</div>
 <p>Bayar sesuai harga produk, lalu unggah bukti pembayaran.</p>
 <label>Nama pembeli</label>
 <input id="buyerName" placeholder="Nama kamu">
@@ -169,18 +160,72 @@ input[type=file]{font-size:12px}
 
 <script>
 const KEY='tapsz_store_local_v1';
+const DB_NAME='tapsz_store_images_v1';
+const DB_STORE='images';
+
 let state={products:{},settings:{},orders:{}};
 let products={},settings={},selected=null;
+let imageDB=null;
+let qrisAvailable=false;
+let qrisObjectUrl='';
 
 function load(){
   try{
     const s=JSON.parse(localStorage.getItem(KEY)||'{}');
-    state={products:s.products||{},settings:s.settings||{},orders:s.orders||{}};
+    state={
+      products:s.products||{},
+      settings:s.settings||{},
+      orders:s.orders||{}
+    };
   }catch(e){
     state={products:{},settings:{},orders:{}};
   }
   products=state.products;
   settings=state.settings;
+}
+
+function openImageDB(){
+  return new Promise((resolve,reject)=>{
+    if(!window.indexedDB){
+      reject(Error('IndexedDB tidak tersedia'));
+      return;
+    }
+    const request=indexedDB.open(DB_NAME,1);
+
+    request.onupgradeneeded=()=>{
+      if(!request.result.objectStoreNames.contains(DB_STORE)){
+        request.result.createObjectStore(DB_STORE);
+      }
+    };
+
+    request.onsuccess=()=>{
+      imageDB=request.result;
+      imageDB.onversionchange=()=>imageDB.close();
+      resolve(imageDB);
+    };
+
+    request.onerror=()=>reject(request.error);
+    request.onblocked=()=>reject(Error('Database sedang diblokir'));
+  });
+}
+
+function dbGet(key){
+  return new Promise((resolve,reject)=>{
+    if(!imageDB){
+      reject(Error('Database belum siap'));
+      return;
+    }
+
+    let tx;
+    try{
+      tx=imageDB.transaction(DB_STORE,'readonly');
+      const request=tx.objectStore(DB_STORE).get(key);
+      request.onsuccess=()=>resolve(request.result??null);
+      request.onerror=()=>reject(request.error);
+    }catch(error){
+      reject(error);
+    }
+  });
 }
 
 function esc(s){
@@ -212,10 +257,8 @@ function show(id){
   window.scrollTo(0,0);
 
   if(id==='produk'||id==='dashboard')renderProducts();
-  if(id==='admin'){
-    renderLinks();
-    renderQrisAdmin();
-  }
+  if(id==='admin')renderLinks();
+
   if(id==='pesanan'){
     renderStats();
     renderMyOrders();
@@ -274,10 +317,79 @@ function renderStats(){
     :'<div class="empty">Leaderboard muncul setelah pesanan selesai.</div>';
 }
 
-function buy(id){
+/* QRIS dibaca dari IndexedDB yang sama dengan halaman Admin */
+async function readSavedQris(){
+  const img=document.getElementById('qris');
+  const noQris=document.getElementById('noQris');
+  const loading=document.getElementById('qrisLoading');
+
+  img.classList.add('hidden');
+  noQris.classList.add('hidden');
+  loading.classList.remove('hidden');
+  qrisAvailable=false;
+
+  if(qrisObjectUrl){
+    URL.revokeObjectURL(qrisObjectUrl);
+    qrisObjectUrl='';
+  }
+
+  try{
+    if(!imageDB)await openImageDB();
+
+    const saved=await dbGet('main-qris');
+
+    if(saved){
+      if(saved instanceof Blob){
+        qrisObjectUrl=URL.createObjectURL(saved);
+        img.src=qrisObjectUrl;
+      }else if(typeof saved==='string'&&saved.length){
+        img.src=saved;
+      }else{
+        throw Error('Format QRIS tidak dikenal');
+      }
+
+      await new Promise((resolve,reject)=>{
+        if(img.complete&&img.naturalWidth>0){
+          resolve();
+          return;
+        }
+        img.onload=()=>resolve();
+        img.onerror=()=>reject(Error('Gambar QRIS gagal dimuat'));
+      });
+
+      qrisAvailable=true;
+      img.classList.remove('hidden');
+    }else if(settings.qris){
+      /* Dukungan untuk QRIS dari versi lama */
+      img.src=settings.qris;
+
+      await new Promise((resolve,reject)=>{
+        img.onload=()=>resolve();
+        img.onerror=()=>reject(Error('QRIS lama gagal dimuat'));
+      });
+
+      qrisAvailable=true;
+      img.classList.remove('hidden');
+    }else{
+      noQris.classList.remove('hidden');
+    }
+  }catch(error){
+    console.error('Gagal memuat QRIS:',error);
+    noQris.textContent=
+      'QRIS gagal dimuat. Pastikan QRIS sudah disimpan di Admin dan kedua halaman dibuka dari origin yang sama.';
+    noQris.classList.remove('hidden');
+  }finally{
+    loading.classList.add('hidden');
+  }
+}
+
+async function buy(id){
+  load();
+
   let p=products[id];
   if(!p)return alert('Produk tidak ditemukan.');
 
+  /* Produk gratis tetap langsung ke link download */
   if(Number(p.price)===0){
     let link=safeUrl(p.download);
     if(!link)return alert('Link download belum tersedia.');
@@ -286,28 +398,18 @@ function buy(id){
   }
 
   selected={id,...p};
+
   document.getElementById('chosenProduct').innerHTML=
     `<h3>${esc(p.name)}</h3><p>${esc(p.description||'')}</p><div class="price">${money(p.price)}</div>`;
-
-  load();
-  document.getElementById('qris').classList.toggle('hidden',!settings.qris);
-  document.getElementById('noQris').classList.toggle('hidden',!!settings.qris);
-  document.getElementById('qris').removeAttribute('src');
-
-  if(settings.qris){
-    document.getElementById('qris').src=settings.qris;
-    document.getElementById('qris').onerror=()=>{
-      document.getElementById('qris').classList.add('hidden');
-      document.getElementById('noQris').classList.remove('hidden');
-      document.getElementById('noQris').textContent='Gambar QRIS gagal dimuat. Coba unggah ulang.';
-    };
-  }
 
   document.getElementById('buyerName').value='';
   document.getElementById('proof').value='';
   document.getElementById('proofPreview').classList.add('hidden');
   document.getElementById('sendMessage').textContent='';
+  document.getElementById('sendButton').disabled=false;
+
   show('bayar');
+  await readSavedQris();
 }
 
 document.getElementById('proof').addEventListener('change',function(){
@@ -334,26 +436,34 @@ document.getElementById('proof').addEventListener('change',function(){
 });
 
 function sendOrder(){
-  load();
   if(!selected)return alert('Pilih produk dahulu.');
-  if(!settings.qris)return alert('QRIS belum tersedia.');
+  if(!qrisAvailable)return alert('QRIS belum berhasil dimuat. Periksa pengaturan QRIS admin.');
 
   let buyer=document.getElementById('buyerName').value.trim();
   let file=document.getElementById('proof').files[0];
+
   if(!buyer||!file)return alert('Isi nama dan foto bukti pembayaran.');
 
   let btn=document.getElementById('sendButton');
   btn.disabled=true;
 
   let reader=new FileReader();
+
   reader.onload=()=>{
     try{
       let id='ORD-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);
+
       state.orders[id]={
-        id,buyer,productId:selected.id,name:selected.name,
-        price:Number(selected.price),download:selected.download||'',
-        proof:reader.result,status:'Menunggu konfirmasi',
-        createdAt:Date.now(),date:new Date().toLocaleString('id-ID')
+        id,
+        buyer,
+        productId:selected.id,
+        name:selected.name,
+        price:Number(selected.price),
+        download:selected.download||'',
+        proof:reader.result,
+        status:'Menunggu konfirmasi',
+        createdAt:Date.now(),
+        date:new Date().toLocaleString('id-ID')
       };
 
       localStorage.setItem(KEY,JSON.stringify(state));
@@ -366,7 +476,7 @@ function sendOrder(){
       document.getElementById('orderId').value=id;
       selected=null;
     }catch(e){
-      alert('Penyimpanan browser penuh atau gambar terlalu besar. Coba gambar lebih kecil.');
+      alert('Penyimpanan browser penuh atau gambar terlalu besar. Coba gunakan gambar bukti yang lebih kecil.');
     }finally{
       btn.disabled=false;
     }
@@ -376,6 +486,7 @@ function sendOrder(){
     btn.disabled=false;
     alert('Gagal membaca gambar.');
   };
+
   reader.readAsDataURL(file);
 }
 
@@ -439,67 +550,6 @@ function openOrder(id){
   checkOrder();
 }
 
-function saveQrisUpload(){
-  const input=document.getElementById('qrisUpload');
-  const file=input.files&&input.files[0];
-  const msg=document.getElementById('qrisAdminMessage');
-
-  if(!file){
-    msg.textContent='Pilih gambar QRIS terlebih dahulu.';
-    return;
-  }
-  if(!file.type.startsWith('image/')){
-    msg.textContent='File harus berupa gambar.';
-    return;
-  }
-  if(file.size>1500000){
-    msg.textContent='Ukuran gambar lebih dari 1,5 MB. Kompres gambar dahulu.';
-    return;
-  }
-
-  const reader=new FileReader();
-  reader.onload=()=>{
-    try{
-      load();
-      settings.qris=reader.result;
-      state.settings=settings;
-      localStorage.setItem(KEY,JSON.stringify(state));
-
-      const preview=document.getElementById('qrisAdminPreview');
-      preview.src=reader.result;
-      preview.classList.remove('hidden');
-      msg.textContent='QRIS tersimpan di browser ini. Coba buka produk berbayar untuk memeriksa tampilan.';
-    }catch(e){
-      msg.textContent='Gagal menyimpan. Gambar mungkin terlalu besar untuk penyimpanan browser.';
-    }
-  };
-  reader.onerror=()=>{msg.textContent='Gagal membaca file gambar.';};
-  reader.readAsDataURL(file);
-}
-
-function removeQrisUpload(){
-  load();
-  delete settings.qris;
-  state.settings=settings;
-  localStorage.setItem(KEY,JSON.stringify(state));
-
-  document.getElementById('qrisAdminPreview').removeAttribute('src');
-  document.getElementById('qrisAdminPreview').classList.add('hidden');
-  document.getElementById('qrisUpload').value='';
-  document.getElementById('qrisAdminMessage').textContent='QRIS dihapus dari penyimpanan browser ini.';
-}
-
-function renderQrisAdmin(){
-  const preview=document.getElementById('qrisAdminPreview');
-  if(settings.qris){
-    preview.src=settings.qris;
-    preview.classList.remove('hidden');
-  }else{
-    preview.removeAttribute('src');
-    preview.classList.add('hidden');
-  }
-}
-
 function renderLinks(){
   let wa=String(settings.wa||'').replace(/\D/g,'');
   let list=[
@@ -515,14 +565,18 @@ function renderLinks(){
   ).join('');
 }
 
-function refresh(){
+async function refresh(){
   load();
   renderProducts();
   renderLinks();
   renderStats();
   renderMyOrders();
-  renderQrisAdmin();
+
   if(document.getElementById('orderId').value)checkOrder();
+
+  if(document.getElementById('bayar').classList.contains('active')&&selected){
+    await readSavedQris();
+  }
 }
 
 window.addEventListener('storage',e=>{
