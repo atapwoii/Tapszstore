@@ -1,4 +1,4 @@
- 
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -99,7 +99,7 @@ input[type=file]{font-size:12px}
 <div class="head"><h2>▰ Koleksi Produk</h2><span class="tag">Digital</span></div>
 <p>Cari produk, lalu tekan beli untuk menampilkan QRIS.</p>
 <div class="tools">
-<input id="searchProducts" placeholder="Cari nama produk..." oninput="renderProducts()">
+<input id="searchProducts" placeholder="Cari nama aplikasi..." oninput="renderProducts()">
 <select id="filterProducts" onchange="renderProducts()">
 <option value="all">Semua tipe</option>
 <option value="paid">Berbayar</option>
@@ -109,7 +109,6 @@ input[type=file]{font-size:12px}
 <div id="productList" class="grid"></div>
 </section>
 
-<!-- BAGIAN PESANAN DIPERBAIKI -->
 <section id="pesanan" class="page">
 <div class="panel">
 <h2>▤ Pesanan Saya</h2>
@@ -127,6 +126,16 @@ input[type=file]{font-size:12px}
 
 <section id="admin" class="page">
 <div class="panel">
+<h2>⚙️ Pengaturan QRIS</h2>
+<p>Pilih gambar QRIS dari galeri HP, lalu simpan. QRIS tersimpan di browser/perangkat ini saja.</p>
+<label for="qrisUpload">Gambar QRIS</label>
+<input id="qrisUpload" type="file" accept="image/*">
+<img id="qrisAdminPreview" class="qris hidden" alt="Pratinjau QRIS admin">
+<button class="btn block" onclick="saveQrisUpload()">Simpan QRIS</button>
+<button class="btn gray block" style="margin-top:8px" onclick="removeQrisUpload()">Hapus QRIS</button>
+<p id="qrisAdminMessage" class="note"></p>
+</div>
+<div class="panel">
 <h2>☎ Informasi Admin</h2>
 <p>Hubungi admin melalui tautan resmi berikut.</p>
 <div id="adminLinks"></div>
@@ -143,7 +152,7 @@ input[type=file]{font-size:12px}
 <p>Bayar sesuai harga produk, lalu unggah bukti pembayaran.</p>
 <label>Nama pembeli</label>
 <input id="buyerName" placeholder="Nama kamu">
-<label>Foto bukti pembayaran (tanpa batas ukuran di kode)</label>
+<label>Foto bukti pembayaran</label>
 <input id="proof" type="file" accept="image/*">
 <img id="proofPreview" class="qris hidden" alt="Pratinjau bukti">
 <button id="sendButton" class="btn block" onclick="sendOrder()">Kirim Bukti Pembayaran</button>
@@ -166,11 +175,7 @@ let products={},settings={},selected=null;
 function load(){
   try{
     const s=JSON.parse(localStorage.getItem(KEY)||'{}');
-    state={
-      products:s.products||{},
-      settings:s.settings||{},
-      orders:s.orders||{}
-    };
+    state={products:s.products||{},settings:s.settings||{},orders:s.orders||{}};
   }catch(e){
     state={products:{},settings:{},orders:{}};
   }
@@ -207,8 +212,10 @@ function show(id){
   window.scrollTo(0,0);
 
   if(id==='produk'||id==='dashboard')renderProducts();
-  if(id==='admin')renderLinks();
-
+  if(id==='admin'){
+    renderLinks();
+    renderQrisAdmin();
+  }
   if(id==='pesanan'){
     renderStats();
     renderMyOrders();
@@ -282,10 +289,19 @@ function buy(id){
   document.getElementById('chosenProduct').innerHTML=
     `<h3>${esc(p.name)}</h3><p>${esc(p.description||'')}</p><div class="price">${money(p.price)}</div>`;
 
+  load();
   document.getElementById('qris').classList.toggle('hidden',!settings.qris);
   document.getElementById('noQris').classList.toggle('hidden',!!settings.qris);
+  document.getElementById('qris').removeAttribute('src');
 
-  if(settings.qris)document.getElementById('qris').src=settings.qris;
+  if(settings.qris){
+    document.getElementById('qris').src=settings.qris;
+    document.getElementById('qris').onerror=()=>{
+      document.getElementById('qris').classList.add('hidden');
+      document.getElementById('noQris').classList.remove('hidden');
+      document.getElementById('noQris').textContent='Gambar QRIS gagal dimuat. Coba unggah ulang.';
+    };
+  }
 
   document.getElementById('buyerName').value='';
   document.getElementById('proof').value='';
@@ -318,6 +334,7 @@ document.getElementById('proof').addEventListener('change',function(){
 });
 
 function sendOrder(){
+  load();
   if(!selected)return alert('Pilih produk dahulu.');
   if(!settings.qris)return alert('QRIS belum tersedia.');
 
@@ -332,7 +349,6 @@ function sendOrder(){
   reader.onload=()=>{
     try{
       let id='ORD-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);
-
       state.orders[id]={
         id,buyer,productId:selected.id,name:selected.name,
         price:Number(selected.price),download:selected.download||'',
@@ -350,7 +366,7 @@ function sendOrder(){
       document.getElementById('orderId').value=id;
       selected=null;
     }catch(e){
-      alert('Penyimpanan browser penuh atau gambar terlalu besar untuk disimpan. Coba gambar lebih kecil atau gunakan penyimpanan online.');
+      alert('Penyimpanan browser penuh atau gambar terlalu besar. Coba gambar lebih kecil.');
     }finally{
       btn.disabled=false;
     }
@@ -423,6 +439,67 @@ function openOrder(id){
   checkOrder();
 }
 
+function saveQrisUpload(){
+  const input=document.getElementById('qrisUpload');
+  const file=input.files&&input.files[0];
+  const msg=document.getElementById('qrisAdminMessage');
+
+  if(!file){
+    msg.textContent='Pilih gambar QRIS terlebih dahulu.';
+    return;
+  }
+  if(!file.type.startsWith('image/')){
+    msg.textContent='File harus berupa gambar.';
+    return;
+  }
+  if(file.size>1500000){
+    msg.textContent='Ukuran gambar lebih dari 1,5 MB. Kompres gambar dahulu.';
+    return;
+  }
+
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      load();
+      settings.qris=reader.result;
+      state.settings=settings;
+      localStorage.setItem(KEY,JSON.stringify(state));
+
+      const preview=document.getElementById('qrisAdminPreview');
+      preview.src=reader.result;
+      preview.classList.remove('hidden');
+      msg.textContent='QRIS tersimpan di browser ini. Coba buka produk berbayar untuk memeriksa tampilan.';
+    }catch(e){
+      msg.textContent='Gagal menyimpan. Gambar mungkin terlalu besar untuk penyimpanan browser.';
+    }
+  };
+  reader.onerror=()=>{msg.textContent='Gagal membaca file gambar.';};
+  reader.readAsDataURL(file);
+}
+
+function removeQrisUpload(){
+  load();
+  delete settings.qris;
+  state.settings=settings;
+  localStorage.setItem(KEY,JSON.stringify(state));
+
+  document.getElementById('qrisAdminPreview').removeAttribute('src');
+  document.getElementById('qrisAdminPreview').classList.add('hidden');
+  document.getElementById('qrisUpload').value='';
+  document.getElementById('qrisAdminMessage').textContent='QRIS dihapus dari penyimpanan browser ini.';
+}
+
+function renderQrisAdmin(){
+  const preview=document.getElementById('qrisAdminPreview');
+  if(settings.qris){
+    preview.src=settings.qris;
+    preview.classList.remove('hidden');
+  }else{
+    preview.removeAttribute('src');
+    preview.classList.add('hidden');
+  }
+}
+
 function renderLinks(){
   let wa=String(settings.wa||'').replace(/\D/g,'');
   let list=[
@@ -444,6 +521,7 @@ function refresh(){
   renderLinks();
   renderStats();
   renderMyOrders();
+  renderQrisAdmin();
   if(document.getElementById('orderId').value)checkOrder();
 }
 
