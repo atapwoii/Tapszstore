@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAPSZ HD </title>
+<style>
+:root{--bg:#07111f;--panel:#101e31;--panel2:#0b1728;--blue:#258bff;--cyan:#53d8ff;--text:#eef6ff;--muted:#9fb2ca}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#102b50 0,#07111f 42%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:22px 16px 16px;max-width:1050px;margin:auto} .brand{font-weight:900;letter-spacing:1px;font-size:24px}.brand span{color:var(--cyan)} header p{color:var(--muted);margin:5px 0 0}
+main{max-width:1050px;margin:auto;padding:0 14px 40px}.tabs{display:flex;gap:8px;margin:8px 0 16px}.tab{flex:1;padding:12px 8px;border:1px solid #24415f;border-radius:12px;background:#0b1a2d;color:#cfe4ff;font-weight:750}.tab.active{background:linear-gradient(120deg,#1673e8,#13a6d7);border-color:transparent;color:white}
+.layout{display:grid;grid-template-columns:1fr;gap:14px}.panel{background:linear-gradient(145deg,rgba(16,30,49,.97),rgba(8,21,37,.97));border:1px solid #1e3856;border-radius:18px;padding:15px;box-shadow:0 12px 32px #0003}.panel h2{font-size:18px;margin:0 0 12px}.preview{min-height:230px;border:1px dashed #365778;border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#06101d;position:relative}.preview img,.preview video{max-width:100%;max-height:420px;object-fit:contain}.placeholder{text-align:center;color:var(--muted);padding:25px}.placeholder b{display:block;color:#e9f5ff;margin-bottom:6px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.control{background:#0a1829;border:1px solid #203b59;border-radius:12px;padding:10px}.control label{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:#c8d9ed;margin-bottom:7px}.control input[type=range]{width:100%;accent-color:var(--cyan)}.control input[type=file],input[type=text],select{width:100%;color:var(--text);background:#0a1829;border:1px solid #2b4969;border-radius:10px;padding:10px}.btn{border:0;border-radius:12px;padding:12px 14px;background:linear-gradient(120deg,#1673e8,#10a6d3);color:white;font-weight:800;cursor:pointer;width:100%;margin-top:10px}.btn.secondary{background:#142944;border:1px solid #2b4b70}.btn:disabled{opacity:.45;cursor:not-allowed}.hint{font-size:12px;line-height:1.5;color:var(--muted);margin-top:10px}.hidden{display:none!important}.effect-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.effect{background:#0a1829;border:1px solid #284766;color:#dceeff;border-radius:11px;padding:11px 8px;font-weight:700}.effect.selected{border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan);background:#102c47}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}.pill{display:inline-block;border:1px solid #29496a;color:#a9dfff;border-radius:99px;padding:4px 8px;font-size:11px;margin-bottom:9px}
+#videoPreview{width:100%;max-height:420px}footer{color:#8298b4;font-size:12px;text-align:center;padding:22px 12px}
+@media(min-width:760px){.layout{grid-template-columns:1.1fr .9fr}.preview{min-height:350px}.effect-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="brand">TAPSZ <span>HD ENHANCER</span></div><p>Pilih kode efek foto, proses otomatis, lalu simpan hasilnya.</p></header>
+<main>
+<section class="layout">
+<div class="panel">
+  <span class="pill">PHOTO COMMANDS</span>
+  <h2>1. Pilih foto</h2>
+  <div class="preview" id="photoPreview"><div class="placeholder"><b>Foto asli</b>Pilih foto dari galeri untuk mulai.</div></div>
+  <label for="photoFile" class="btn secondary" style="display:block;text-align:center;margin-top:12px">📷 Pilih Foto dari Galeri</label>
+  <input id="photoFile" type="file" accept="image/*,.jpg,.jpeg,.png,.webp" style="margin-top:8px">
+  <h2 style="margin-top:20px">2. Pilih kode efek</h2>
+  <div class="control">
+    <label for="command">Kode / perintah</label>
+    <select id="command">
+      <option value="/upscale /HD">/upscale /HD — HD & lebih jernih</option>
+      <option value="/flashphoto">/flashphoto — efek flash kamera</option>
+      <option value="/dramaticshadow">/dramaticshadow — bayangan dramatis</option>
+      <option value="/fisheye">/fisheye — efek lensa cembung</option>
+      <option value="/cinematic close up">/cinematic close up — nuansa sinematik</option>
+      <option value="/newspapercover">/newspapercover — gaya sampul koran</option>
+      <option value="/doubleexposure">/doubleexposure — efek dua eksposur</option>
+      <option value="/clones">/clones — efek beberapa klon</option>
+      <option value="/slowshutter">/slowshutter — efek gerak lambat/blur</option>
+      <option value="/softglow">/softglow — cahaya lembut</option>
+      <option value="/vintagefilm">/vintagefilm — warna film jadul</option>
+      <option value="/warmportrait">/warmportrait — tone wajah hangat</option>
+      <option value="/nightneon">/nightneon — warna malam neon</option>
+      <option value="/vignette">/vignette — sudut gelap sinematik</option>
+      <option value="/colorboost">/colorboost — warna lebih hidup</option>
+      <option value="/matte">/matte — warna matte lembut</option>
+      <option value="/cooltone">/cooltone — tone biru dingin</option>
+      <option value="/sharpen">/sharpen — ketajaman ekstra</option>
+      <option value="/dreamy">/dreamy — efek dreamy lembut</option>
+    </select>
+  </div>
+  <div class="command-desc" id="commandDesc">Meningkatkan ketajaman, kontras, dan ukuran foto secara otomatis.</div>
+  <button class="btn" id="processBtn" disabled>✨ Proses Foto (10 detik)</button>
+  <div class="progress-wrap hidden" id="progressWrap"><div class="progress-head"><span id="progressText">Menyiapkan foto…</span><b id="progressNum">0%</b></div><div class="progress-track"><div id="progressBar"></div></div><p class="hint">Proses berjalan. Jangan tutup halaman sampai selesai.</p></div>
+  <p class="hint">Kode ini adalah preset efek di web ini, bukan perintah rahasia universal. Efek dibuat dengan pemrosesan lokal di browser.</p>
+</div>
+<div class="panel">
+  <span class="pill">HASIL AKHIR</span>
+  <h2>Pratinjau hasil</h2>
+  <div class="preview" id="resultPreview"><div class="placeholder"><b>Hasil akan muncul di sini</b>Pilih foto dan efek, lalu tekan proses.</div></div>
+  <div id="status" class="hint">Belum ada foto yang diproses.</div>
+  <button class="btn" id="downloadResult" disabled>⬇ Simpan Hasil Foto</button>
+</div>
+</section>
+</main>
+<footer>GLUUPZ HD ENHANCER • Efek dan proses foto dilakukan di browser.</footer>
+<style>
+.command-desc{margin-top:10px;background:#0a2035;border:1px solid #285173;border-radius:12px;padding:12px;color:#cce8ff;line-height:1.5}
+.progress-wrap{margin-top:14px;background:#0a1829;border:1px solid #294766;border-radius:12px;padding:12px}
+.progress-head{display:flex;justify-content:space-between;font-size:13px;color:#d9edff;margin-bottom:8px}
+.progress-track{height:10px;background:#1a2d43;border-radius:99px;overflow:hidden}
+#progressBar{height:100%;width:0%;background:linear-gradient(90deg,#1673e8,#53d8ff);border-radius:99px;transition:width .2s linear}
+</style>
+<script>
+const $=id=>document.getElementById(id);
+const descriptions={
+ '/upscale /HD':'Meningkatkan ketajaman, kontras, dan ukuran foto secara otomatis agar tampak lebih jernih.',
+ '/flashphoto':'Menambahkan sorotan cahaya terang seperti foto yang diambil dengan flash kamera.',
+ '/dramaticshadow':'Membuat bayangan lebih tegas dan kontras untuk tampilan dramatis.',
+ '/fisheye':'Memberi distorsi lensa cembung seperti kamera fisheye.',
+ '/cinematic close up':'Memberi warna sinematik, kontras lebih kuat, dan fokus tampilan close-up.',
+ '/newspapercover':'Mengubah foto menjadi gaya sampul koran hitam-putih dengan tekstur cetak.',
+ '/doubleexposure':'Mencampur dua salinan foto dengan transparansi untuk efek double exposure.',
+ '/clones':'Membuat efek beberapa salinan subjek dalam satu gambar.',
+ '/slowshutter':'Memberi kesan gerakan dengan blur arah sederhana.',
+ '/softglow':'Menambahkan cahaya lembut untuk tampilan cerah dan dreamy.',
+ '/vintagefilm':'Memberi nuansa foto film jadul dengan warna hangat dan sedikit pudar.',
+ '/warmportrait':'Menghangatkan warna foto agar tampilan portrait terasa lebih hangat.',
+ '/nightneon':'Memperkuat warna biru dan magenta untuk nuansa malam neon.',
+ '/vignette':'Menggelapkan tepi foto secara halus agar fokus lebih ke tengah.',
+ '/colorboost':'Menaikkan saturasi dan kontras supaya warna lebih hidup.',
+ '/matte':'Membuat kontras lebih lembut dengan hasil akhir matte.',
+ '/cooltone':'Memberi nuansa warna biru dingin.',
+ '/sharpen':'Mempertegas detail menggunakan penajaman sederhana.',
+ '/dreamy':'Menghasilkan tampilan lembut dengan cahaya dan warna yang lebih halus.'
+};
+let sourceImage=null,sourceURL=null,resultBlob=null,processing=false;
+const canvas=document.createElement('canvas');
+$('command').addEventListener('change',()=>{$('commandDesc').textContent=descriptions[$('command').value]});
+$('photoFile').addEventListener('change',e=>{
+ const f=e.target.files && e.target.files[0];if(!f){$('status').textContent='Belum ada foto yang dipilih. Coba tekan Pilih Foto dari Galeri lagi.';return;}
+ $('status').textContent='Memuat foto…';
+ if(!f.type.startsWith('image/')){$('status').textContent='Pilih file gambar JPG, PNG, atau WebP.';return}
+ if(sourceURL)URL.revokeObjectURL(sourceURL);
+ sourceURL=URL.createObjectURL(f);sourceImage=new Image();
+ sourceImage.onload=()=>{
+  const im=document.createElement('img');im.src=sourceURL;im.alt='Foto asli';$('photoPreview').replaceChildren(im);
+  $('processBtn').disabled=false;$('status').textContent='Foto siap. Pilih kode efek, lalu proses.';
+ };
+ sourceImage.onerror=()=>{$('processBtn').disabled=true;$('status').textContent='Foto tidak bisa dibuka. Coba pilih JPG, PNG, atau WebP dari galeri.'};
+ sourceImage.src=sourceURL;
+});
+function clamp(v){return Math.max(0,Math.min(255,v))}
+function renderEffect(img,command){
+ const maxSide=3000,factor=Math.min(2,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+ const w=Math.max(1,Math.round(img.naturalWidth*factor)),h=Math.max(1,Math.round(img.naturalHeight*factor));
+ canvas.width=w;canvas.height=h;const c=canvas.getContext('2d',{willReadFrequently:true});
+ c.fillStyle='#111';c.fillRect(0,0,w,h);
+ const filter=(command==='/newspapercover')?'grayscale(1) contrast(1.65)':
+ command==='/dramaticshadow'?'contrast(1.55) brightness(.88)':
+ command==='/cinematic close up'?'contrast(1.18) saturate(.78) brightness(.96)':
+ command==='/flashphoto'?'brightness(1.18) contrast(1.12) saturate(1.08)':
+ command==='/upscale /HD'?'contrast(1.08) saturate(1.04) brightness(1.015)':
+ command==='/softglow'?'brightness(1.08) saturate(1.08)':
+ command==='/vintagefilm'?'sepia(.42) contrast(.92) saturate(.82) brightness(1.03)':
+ command==='/warmportrait'?'sepia(.18) saturate(1.12) brightness(1.04)':
+ command==='/nightneon'?'contrast(1.2) saturate(1.65) hue-rotate(12deg) brightness(.88)':
+ command==='/colorboost'?'saturate(1.45) contrast(1.08)':
+ command==='/matte'?'contrast(.82) saturate(.88) brightness(1.04)':
+ command==='/cooltone'?'hue-rotate(165deg) saturate(.82) brightness(1.02)':
+ command==='/sharpen'?'contrast(1.16) saturate(1.04)':
+ command==='/dreamy'?'brightness(1.12) contrast(.88) saturate(1.08)':'none';
+ c.filter=filter;c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+ if(command==='/fisheye'){
+   // Simple lens-like approximation using a circular crop.
+   c.save();c.beginPath();c.ellipse(w/2,h/2,w*.49,h*.49,0,0,Math.PI*2);c.clip();
+   c.translate(w/2,h/2);c.scale(1.08,1.08);c.drawImage(img,-w/2,-h/2,w,h);c.restore();
+ }else if(command==='/doubleexposure'){
+   c.globalAlpha=.72;c.drawImage(img,0,0,w,h);c.globalAlpha=.3;c.drawImage(img,w*.07,-h*.02,w,h);c.globalAlpha=1;
+ }else if(command==='/clones'){
+   c.globalAlpha=.92;c.drawImage(img,0,0,w,h);c.globalAlpha=.32;c.drawImage(img,w*.04,0,w*.92,h);c.globalAlpha=.22;c.drawImage(img,-w*.04,0,w*.92,h);c.globalAlpha=1;
+ }else if(command==='/slowshutter'){
+   c.globalAlpha=.22;c.drawImage(img,-w*.025,0,w,h);c.drawImage(img,w*.025,0,w,h);c.globalAlpha=1;c.drawImage(img,0,0,w,h);
+ }else c.drawImage(img,0,0,w,h);
+ c.filter='none';
+ if(command==='/flashphoto'){
+   const g=c.createRadialGradient(w*.48,h*.38,0,w*.48,h*.38,Math.max(w,h)*.7);g.addColorStop(0,'rgba(255,255,235,.24)');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,0,w,h);
+ }
+ if(command==='/newspapercover'){
+   const id=c.getImageData(0,0,w,h),d=id.data;
+   for(let y=0;y<h;y+=3)for(let x=0;x<w;x+=3){const i=(y*w+x)*4;if(d[i]<180){d[i]=d[i+1]=d[i+2]=Math.max(0,d[i]-18)}}
+   c.putImageData(id,0,0);
+   c.fillStyle='rgba(255,255,255,.7)';c.fillRect(w*.04,h*.04,w*.92,h*.13);
+   c.fillStyle='#111';c.font=`bold ${Math.max(18,w*.055)}px Georgia`;c.fillText('DAILY PHOTO',w*.07,h*.125,w*.85);
+ }
+ if(command==='/upscale /HD'&&w*h<6500000){
+  const frame=c.getImageData(0,0,w,h),d=frame.data,orig=new Uint8ClampedArray(d),amount=.42;
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=(y*w+x)*4;for(let ch=0;ch<3;ch++){const avg=(orig[i-4+ch]+orig[i+4+ch]+orig[i-w*4+ch]+orig[i+w*4+ch])/4;d[i+ch]=clamp(orig[i+ch]+(orig[i+ch]-avg)*amount)}}
+  c.putImageData(frame,0,0);
+ }
+ return new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.94));
+}
+$('processBtn').onclick=async()=>{
+ if(!sourceImage||processing)return;processing=true;$('processBtn').disabled=true;$('downloadResult').disabled=true;
+ const cmd=$('command').value;$('progressWrap').classList.remove('hidden');$('progressBar').style.width='0%';
+ // Hitung mundur sesuai permintaan: 10 detik.
+ let left=10;$('progressText').textContent='Memproses '+cmd;
+ const timer=setInterval(()=>{left--;const pct=Math.max(0,Math.min(100,Math.round((10-left)/10*100)));$('progressBar').style.width=pct+'%';$('progressNum').textContent=pct+'%';$('progressText').textContent=`Sedang memproses… ${left} detik`;if(left<=0)clearInterval(timer)},1000);
+ try{
+   // Prepare result while countdown runs, then show when the 10-second countdown ends.
+   resultBlob=await renderEffect(sourceImage,cmd);
+   if(!resultBlob)throw new Error('Gagal membuat hasil.');
+   await new Promise(resolve=>{const wait=setInterval(()=>{if(left<=0){clearInterval(wait);resolve()}},100)});
+   const outURL=URL.createObjectURL(resultBlob),im=document.createElement('img');im.src=outURL;im.alt='Hasil foto';$('resultPreview').replaceChildren(im);
+   $('status').textContent='Selesai! Efek '+cmd+' sudah diterapkan. Foto siap disimpan.';
+   $('downloadResult').disabled=false;
+ }catch(err){$('status').textContent='Gagal memproses foto. Coba pilih foto lain.'}
+ clearInterval(timer);$('progressBar').style.width='100%';$('progressNum').textContent='100%';$('progressText').textContent='Selesai!';$('processBtn').disabled=false;processing=false;
+};
+$('downloadResult').onclick=()=>{
+ if(!resultBlob){$('status').textContent='Belum ada hasil foto. Proses foto terlebih dahulu.';return;}
+ const url=URL.createObjectURL(resultBlob);
+ const a=document.createElement('a');
+ const preset=$('command').value.replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+ a.href=url;
+ a.download='gluupz-'+preset+'.jpg';
+ a.setAttribute('aria-label','Unduh hasil foto');
+ a.style.position='fixed';a.style.left='-9999px';
+ document.body.appendChild(a);
+ // Menambahkan link ke halaman sebelum click lebih andal pada browser Android.
+ a.click();
+ $('status').textContent='Unduhan dimulai: '+a.download+'. Cek folder Download/Unduhan di browser atau galeri HP.';
+ setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},10000);
+};
+</script>
+</body></html>
